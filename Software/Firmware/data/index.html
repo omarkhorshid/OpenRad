@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRad</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 496 512'%3E%3Cpath fill='%23e9ae2f' d='M328.2 255.8h151.6c9.1 0 16.8-7.7 16.2-16.8-5.1-75.8-44.4-142.2-102.5-184.2-7.4-5.3-17.9-2.9-22.7 4.8L290.4 188c22.6 14.3 37.8 39.2 37.8 67.8zm-37.8 67.7c-12.3 7.7-26.8 12.4-42.4 12.4-15.6 0-30-4.7-42.4-12.4L125.2 452c-4.8 7.7-2.4 18.1 5.6 22.4C165.7 493.2 205.6 504 248 504s82.3-10.8 117.2-29.6c8-4.3 10.4-14.8 5.6-22.4l-80.4-128.5zM248 303.8c26.5 0 48-21.5 48-48s-21.5-48-48-48-48 21.5-48 48 21.5 48 48 48zm-231.8-48h151.6c0-28.6 15.2-53.5 37.8-67.7L125.2 59.7c-4.8-7.7-15.3-10.2-22.7-4.8C44.4 96.9 5.1 163.3 0 239.1c-.6 9 7.1 16.7 16.2 16.7z'/%3E%3C/svg%3E" type="image/svg+xml">
+    <script src="chart.js"></script>
+
+    <style>
+        /*#region */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+            color: #333;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        nav {
+            background-color: #333;
+            overflow: hidden;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        nav a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            border-radius: 5px;
+        }
+        nav a:hover {
+            background-color: #555;
+        }
+        /*#endregion*/
+        /*#region Center tabs on smaller screens */
+        #tabNav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #tabNav a {
+            flex: 1 0 auto;
+            text-align: center;
+            width: 100px;
+            margin: 5px;
+        }
+        section {
+            display: none;
+        }
+        section.show {
+            display: block;
+        }
+        /*#endregion*/
+        /*#region toggle Dark mode*/
+        .dark-mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .dark-mode-toggle:hover {
+            background-color: #555;
+        }
+        body.dark-mode {
+            background-color: #222;
+            color: #fff;
+        }
+        body.dark-mode nav {
+            background-color: #555;
+        }
+        body.dark-mode nav a {
+            color: white;
+        }
+        body.dark-mode nav a:hover {
+            background-color: #777;
+        }
+        body.dark-mode .dark-mode-toggle {
+            background-color: #fff;
+            color: #333;
+        }
+        /*#endregion*/
+        
+        /*#region form*/
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        .form-group input[type="submit"] {
+            background-color: #333;
+            color: white;
+            cursor: pointer;
+        }
+        .form-group input[type="submit"]:hover {
+            background-color: #555;
+        }
+        /*#endregion*/
+
+        /*#region toast countainer*/
+        .toast-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        padding: 10px;
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        }
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin: 5px 0;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            padding: 16px;
+            z-index: 1;
+            position: relative;
+        }
+        .toast.show {
+            visibility: visible;
+            animation: slideInLeft 0.5s ease;
+        }
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        /*#endregion*/
+        
+        /*#region CSS for SSID suggestions */
+        .suggestions {
+        display: none;
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ccc;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 999;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add shadow */
+        }
+
+        body.dark-mode .suggestions {
+            background-color: #333;
+            color: white;
+            border-color: #555;
+        }
+
+        .suggestions div:hover {
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+
+        body.dark-mode .suggestions div:hover {
+            background-color: #555;
+        }
+            
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .suggestions::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .suggestions::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .suggestions::-webkit-scrollbar-thumb {
+            background-color: #ccc;
+            border-radius: 4px;
+        }
+
+        .suggestions::-webkit-scrollbar-thumb:hover {
+            background-color: #aaa;
+        }
+        .input-with-button {
+            display: flex;
+        }
+
+        .input-with-button input {
+            flex: 1;
+        }
+
+        .input-with-button button {
+            margin-left: 10px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+        /*#endregion*/
+
+        /*#region Color the icon based on dark or light mode */
+        body.dark-mode .input-with-button button img {
+            filter: invert(1);
+        }
+
+        .input-with-button button img {
+            filter: invert(0); 
+        }
+
+        .fa-spin {
+            animation: spin 0.3s linear;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        body.dark-mode img#wifi-password-visibility-icon {
+            filter: invert(1);
+        }
+
+        body:not(.dark-mode) img#wifi-password-visibility-icon {
+            filter: invert(0);
+        }
+
+        body.dark-mode img#mqtt-password-visibility-icon {
+            filter: invert(1);
+        }
+
+        body:not(.dark-mode) img#mqtt-password-visibility-icon {
+            filter: invert(0);
+        }
+        /*#endregion*/
+        
+        /*#region HOME*/
+        .gauge-text {
+        transform: translate(0%, -145%);
+        color: #000;
+        font-size: 24px;
+        text-align: center;
+        }
+        .gauge-container {
+        position: relative;
+        margin: 0 auto;
+        width: 300px;
+        height: 300px;
+        }
+        #gaugeChart {
+        position: relative;
+        }
+        /*#endregion*/
+       
+        /*#region Device settings*/
+        @media only screen and (max-width: 750px) {
+            .container {
+                max-width: 500px; /* Limit container width to 500px */
+            }
+        }
+        /*#region Grid layout for checkbox items */
+        .settings-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        }
+        /*#endregion*/
+
+        /*#region toggle CSS*/
+        /* Styling for checkbox items */
+        .Setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-grow: 1;
+            margin-bottom: 10px;
+        }
+
+        .toggle-label {
+            margin-right: 10px;
+            font-size: 24px;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1;
+            text-align: right;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+        
+        /* Media query for larger screens */
+        @media only screen and (min-width: 750px) {
+            .Setting-item {
+                justify-content: center;
+            }
+            .toggle-label{
+            text-align: right;
+            }
+        }
+        /* Media query for very small screens */
+        @media only screen and (max-width: 400px) {
+            .toggle-label{
+            font-size: 20px;
+            }
+        }
+        /* Media query for smaller screens */
+        @media only screen and (max-width: 750px) {
+            .settings-container {
+                display: flex;
+                flex-direction: column;
+            }
+            .Setting-item {
+                width: 100%;
+            }
+            .toggle-label{
+            flex: 1;
+            text-align: left;
+            }
+            .toggle-label.end-label
+            {
+            flex: 0;
+            text-align: right;
+            }
+        }
+
+        /*#endregion*/
+        
+        /*#region Styling for toggle switch*/
+        .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        }
+
+        .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        }
+
+        .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+        }
+
+        .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        }
+
+        input:checked + .slider {
+        background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+        transform: translateX(26px);
+        }
+
+        /* Rounded sliders */
+        .slider.round {
+        border-radius: 34px;
+        }
+
+        .slider.round:before {
+        border-radius: 50%;
+        }
+        /*#endregion */
+        
+        /*#region Slider*/
+        .form-input.brightness-slider{
+        max-width: fit-content;
+        min-width: 180px;
+        }
+        /*#endregion*/
+
+        /*#region input*/
+        .form-input {
+        width: 100%;
+        padding: 6px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 20px;
+        font-family: Arial, Helvetica, sans-serif;
+        max-width: 100px;
+        text-align: right; 
+        }
+        .form-input:focus {
+        outline: none;
+        }
+        /*#endregion*/
+
+        /*#region Separator*/
+        .separator {
+        border-top: 1px solid #ccc;
+        margin: 40px 0px 40px 0px ;
+        }
+        /*#endregion*/
+
+        /*#region setting-header*/
+        /* Add border to the left and right of setting menu titles */
+        .setting-header {
+        position: relative;
+        margin-top: 40px;
+        margin-bottom: 40px;
+        text-align: center
+        }
+
+        .setting-header::before,
+        .setting-header::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        width: calc(50% - 135px);
+        height: 1px;
+        background-color: #ccc;
+        }
+
+        .setting-header::before {
+        left: 0;
+        }
+
+        .setting-header::after {
+        right: 0;
+        }
+
+
+        /*#endregion*/
+        
+        .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        border-radius: 10px;
+        max-width: 400px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        color: #333;
+        font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .modal h2 {
+        margin-top: 0;
+        }
+
+        .modal-actions {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+        }
+
+        .modal-actions button {
+        margin: 0 10px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+        }
+
+        .modal-actions .reset-button {
+        background-color: rgb(180, 0, 0);
+        color: #fff;
+        }
+
+        .modal-actions .reset-button:hover {
+        background-color: rgb(210, 0, 0); 
+        }
+
+        .modal-actions .cancel-button {
+        background-color: #777;
+        color: #fff;
+        }
+
+        .modal-actions .cancel-button:hover {
+        background-color: #999;
+        }
+
+        .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+        color: #ccc;
+        text-decoration: none;
+        cursor: pointer;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode .modal {
+        background-color: rgba(0,0,0,0.8);
+        }
+
+        body.dark-mode .modal-content {
+        background-color: #333;
+        color: #fff;
+        }
+
+        body.dark-mode .modal-actions button.confirm {
+        background-color: rgb(180, 0, 0); 
+        }
+
+        body.dark-mode .modal-actions button.confirm:hover {
+        background-color: rgb(210, 0, 0); 
+        }
+
+        body.dark-mode .modal-actions button.cancel {
+        background-color: #777; 
+        }
+
+        body.dark-mode .modal-actions button.cancel:hover {
+        background-color: #999;
+        }
+
+        body.dark-mode .close {
+        color: #aaa;
+        }
+
+        body.dark-mode .close:hover,
+        body.dark-mode .close:focus {
+        color: #eee;
+        }
+
+        /*#endregion*/
+
+        /*#endregion*/
+        
+        /*#region MQTT indicator*/
+
+        #mqttStatusIndicator {
+            font-size: 16px;
+        }
+
+        /*#endregion*/
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <nav id="tabNav">
+        <a href="#" class="tablink" onclick="openPage('Home', event)">Home</a>
+        <a href="#" class="tablink" onclick="openPage('WIFI Settings', event)">WIFI</a>
+        <a href="#" class="tablink" onclick="openPage('MQTT Settings', event)">MQTT</a>
+        <a href="#" class="tablink" onclick="openPage('Device Settings', event)">Device</a>
+    </nav>
+
+    <section id="Home" class="tabcontent show">
+        <div style="text-align: center;">
+            <!-- Main Gauge Chart -->
+            <div class="gauge-container">
+                <canvas id="gaugeChart" width="300" height="300"></canvas>
+                <div id="gaugeText" style="transform: translate(0px, -145%);">
+                <div id="gaugeValue" style="font-size: 32px; font-weight: bold;"></div>
+                <div id="additionalInfo" style="font-size: 20px;"></div>
+            </div>      
+                <div id="totalText" class="gauge-text" style="margin-top: 10px;"></div>
+            </div>
+            <!-- Radiation Graph -->
+            <div>
+                <canvas id="radiationGraph" width="600" height="300"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section id="Device Settings" class="tabcontent">
+        <div style="text-align: center;">
+            <h2 class="setting-header">General Settings</h2>
+            <div class="settings-container">
+              <div class="Setting-item">
+                <label for="clicker" class="toggle-label">Clicker:</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="clicker" class="toggle-checkbox">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+              <div class="Setting-item">
+                <label for="alarm" class="toggle-label">Alarm:</label>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="alarm" class="toggle-checkbox">
+                  <span class="slider round"></span>
+                </label>
+              </div>
+              <div class="Setting-item">
+                <label for="dangerRate" class="toggle-label">Danger Rate:</label>
+                <input type="number" id="dangerRate" class="form-input">
+                <label for="dangerRate" class="toggle-label end-label">uSv/h</label>
+              </div>
+            </div>
+            <h2 class="setting-header">Display Settings</h2>
+            <div class="settings-container">
+                <div class="Setting-item">
+                    <label for="brightness" class="toggle-label">Brightness:</label>
+                    <input type="range" id="brightness" class="form-input brightness-slider" min="1" max="5">
+                </div>
+            </div>
+            <h2 class="setting-header">Measurement Settings</h2>
+            <div class="settings-container">
+                <div class="Setting-item">
+                    <label for="windowSize" class="toggle-label">Window Size:</label>
+                    <input type="number" id="windowSize" class="form-input">
+                    <label for="dangerRate" class="toggle-label end-label">mSec</label>
+                </div>
+                <div class="Setting-item">
+                    <label for="samplingPeriod" class="toggle-label">Sample Period:</label>
+                    <input type="number" id="samplingPeriod" class="form-input">
+                    <label for="dangerRate" class="toggle-label end-label">mSec</label>
+                </div>
+        </div>
+        </section>
+
+        <section id="WIFI Settings" class="tabcontent">
+            <h2>WiFi Settings</h2>
+            <form id="wifiForm" onsubmit="saveWiFiSettings(event)">
+                <div class="form-group">
+                    <label for="ssid">WiFi SSID:</label>
+                    <div class="input-with-button">
+                        <input type="text" id="ssid" name="ssid" autocomplete="off" maxlength="32" pattern="[a-zA-Z0-9]+" title="Please enter only alphanumeric characters" required>
+                        <button id="refreshSSIDsButton" onclick="refreshSSIDs()">
+                            <img id="refreshIcon" src="refresh.svg" alt="Refresh">
+                        </button>                    
+                    </div>                
+                    <div id="ssidSuggestions" class="suggestions"></div>
+                </div>
+                <div class="form-group">
+                    <label for="wifiPassword">Password:</label>
+                    <div class="input-with-button">
+                        <input type="password" id="wifiPassword" name="password" required>
+                        <button id="wifi-password-visibility-btn" onclick="toggleWIFIPasswordVisibility()">
+                            <img id="wifi-password-visibility-icon" src="eye_closed.svg" alt="Toggle Password Visibility">
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Save WIFI Settings">
+                </div>            
+            </form>
+        </section>
+        
+        
+        </section>
+        
+        <section id="MQTT Settings" class="tabcontent">
+            <h2>MQTT Settings 
+                <div id="mqttStatusIndicator" class="status-indicator"></div>
+            </h2>
+            <form id="mqttForm" onsubmit="saveMQTTSettings(event)">
+                <div class="form-group">
+                    <label for="broker">Broker:</label>
+                    <input id="broker" name="broker" maxlength="255" required>
+                </div>
+                <div class="form-group">
+                    <label for="port">Port:</label>
+                    <input type="number" id="port" name="port" min="1" max="65535" required>
+                </div>
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username">
+                </div>
+                <div class="form-group">
+                    <label for="mqttPassword">Password:</label>
+                    <div class="input-with-button">
+                        <input type="password" id="mqttPassword" name="password">
+                        <button class="mqtt-password-visibility-btn" onclick="toggleMQTTPasswordVisibility()">
+                            <img id="mqtt-password-visibility-icon" src="eye_closed.svg" alt="Toggle Password Visibility">
+                        </button>
+                    </div>
+                </div>            
+                <div class="form-group">
+                    <label for="clientId">Client ID:</label>
+                    <input type="text" id="clientId" name="clientId" maxlength="23" required>
+                </div>
+                <h2 class="setting-header">Topics</h2>
+                <div class="form-group">
+                    <div class="form-group">
+                        <label for="doseTopic">Dose Topic:</label>
+                        <input type="text" id="doseTopic" name="doseTopic" title="Please enter a valid MQTT topic">
+                    </div>
+                    <div class="form-group">
+                        <label for="totalDoseTopic">Total Dose Topic:</label>
+                        <input type="text" id="totalDoseTopic" name="totalDoseTopic" title="Please enter a valid MQTT topic">
+                    </div>
+                    <div class="form-group">
+                        <input type="submit" id="saveMQTTButton" value="Save MQTT Settings">
+                    </div>                                              
+            </form>
+        </section>
+        
+    
+</div>
+
+<button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+<div id="toast-container" class="toast-container"></div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+
+    //////////////////////////////////////////////////// First Page & Dark Mode  //////////////////////////////////////////////////////////
+    // #region First Page & Dark Mode 
+
+    // Function to set dark mode state in local storage
+    function setDarkModeState(isDarkMode) {
+        localStorage.setItem('darkMode', isDarkMode);
+        applyDarkMode()
+    }
+
+    // Function to get dark mode state from local storage
+    function getDarkModeState() {
+        return localStorage.getItem('darkMode') === 'true';
+    }
+
+    // Initialize Dark mode (without graphs)
+    function applyDarkModeInitial() {
+        var body = document.body;
+        var nav = document.querySelector("nav");
+        var buttons = document.querySelectorAll(".dark-mode-toggle");
+        var isDarkMode = getDarkModeState();
+        if (isDarkMode) {
+            body.classList.add("dark-mode");
+            nav.classList.add("dark-mode");
+            buttons.forEach(button => button.classList.add("dark-mode"));
+        }
+    }
+    applyDarkModeInitial()
+
+    // Function to apply dark mode based on stored state
+    function applyDarkMode() {
+        var body = document.body;
+        var nav = document.querySelector("nav");
+        var buttons = document.querySelectorAll(".dark-mode-toggle");
+        var isDarkMode = getDarkModeState();
+        if (isDarkMode) {
+            body.classList.add("dark-mode");
+            nav.classList.add("dark-mode");
+            buttons.forEach(button => button.classList.add("dark-mode"));
+        }
+        applyColorScheme()
+    }
+
+    function openPage(pageName, event) {
+        event.preventDefault();
+        var i, tabcontent;
+        tabcontent = document.getElementsByTagName("section");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].classList.remove("show");
+        }
+        document.getElementById(pageName).classList.add("show");
+    }
+
+    function toggleDarkMode() {
+        var body = document.body;
+        var nav = document.querySelector("nav");
+        var buttons = document.querySelectorAll(".dark-mode-toggle");
+        var isDarkMode = body.classList.toggle("dark-mode");
+        nav.classList.toggle("dark-mode");
+        buttons.forEach(button => button.classList.toggle("dark-mode"));
+        setDarkModeState(isDarkMode);
+    }
+
+    // #endregion
+
+    ////////////////////////////////////////////////////////////// HOME ///////////////////////////////////////////////////////////////////
+    // #region HOME
+
+    ///////////////////////////////////////////////
+    //             initialize Charts             //
+    ///////////////////////////////////////////////
+
+    // Define radiationGraphData as an empty array
+    var radiationGraphData = [];
+
+    // Main Gauge Chart
+    var gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
+    var gaugeChart = new Chart(gaugeCtx, {
+    type: 'doughnut',
+    data: {
+        labels: [],
+        datasets: [{
+        data: [0, 0, 0, 100], // Initial data with no values (green, yellow, red, grey)
+        backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#f8f9fa'] // Colors for green, yellow, red, grey
+        }]
+    },
+    options: {
+        rotation: -90, // Rotate the gauge to start from the top
+        circumference: 180, // Adjust the circumference to make a half-circle
+        cutout: '80%', // Increase the cutout to 80%
+        plugins: {
+        tooltip: {
+            enabled: false // Disable tooltips
+        }
+        },
+        hover: {
+        mode: null // Disable hover effect
+        },
+        animation: {
+        duration: 0, // Disable animation by setting duration to 0
+        animateRotate: false, // Disable rotation animation
+        animateScale: false // Disable scale animation
+        }
+    }
+    });
+
+    // Initialize the radiation graph
+    var radiationGraphCtx = document.getElementById('radiationGraph').getContext('2d');
+    var radiationGraphChart = new Chart(radiationGraphCtx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+        label: 'uSv/h',
+        data: radiationGraphData,
+        borderColor: '#28a745',
+        backgroundColor: 'rgba(40, 167, 69, 0.3)',
+        borderWidth: 2,
+        fill: 'start',
+        tension: 0.4,
+        pointRadius: 0
+        }, {
+        label: 'Danger Threshold',
+        data: radiationGraphData.map(entry => entry.danger_threshold),
+        borderColor: 'red',
+        backgroundColor: 'rgba(255, 0, 0, 0.3)',
+        borderWidth: 2,
+        fill: 'end',
+        tension: 0,
+        pointRadius: 0
+        }]
+    },
+    options: {
+        scales: {
+        x: {
+            display: false
+        },
+        y: {
+            beginAtZero: true,
+        }
+        },
+        animation: {
+        duration: 0
+        },
+        plugins: {
+        tooltip: {
+            enabled: false
+        }
+        },
+        legend: {
+        display: false
+        },
+        responsive: true,
+    }
+    });
+
+    ///////////////////////////////////////////////
+    //               Update Charts               //
+    ///////////////////////////////////////////////
+
+    // Function to dynamically update gauge chart data
+    function updateGauge(uSvValue, CPMValue, total_uSvValue,danger_Threshold) {
+    var gaugeData = [];
+    var uSvUnit = "uSv";
+    var total_uSvUnit = "uSv";
+
+    // Determine threshold values in uSv
+    var redThreshold = danger_Threshold;
+
+    var maximum = redThreshold/0.9
+    var value = uSvValue
+    // Adjust uSvValue if it exceeds maximum
+    if (value > maximum) {
+        value = maximum;
+    }
+
+    // Map uSvValue to corresponding percentage
+    value = (value / maximum) * 100;
+
+    // Calculate values for each section of the gauge
+    var greenValue = Math.min(value, 60);
+    var yellowValue = Math.max(0, Math.min(value - 60, 30));
+    var redValue = Math.max(0, value - 90);
+    var greyValue = Math.max(100 - value,0);
+
+    // Adjust uSvValue if it exceeds thresholds
+    if (uSvValue > 1000000) {
+        uSvValue /= 1000000;
+        uSvUnit = "Sv";
+    } else if (uSvValue > 1000) {
+        uSvValue /= 1000;
+        uSvUnit = "mSv";
+    }
+
+    // Adjust total_uSvValue if it exceeds thresholds
+    if (total_uSvValue > 1000000) {
+        total_uSvValue /= 1000000;
+        total_uSvUnit = "Sv";
+    } else if (total_uSvValue > 1000) {
+        total_uSvValue /= 1000;
+        total_uSvUnit = "mSv";
+    } else if (total_uSvValue > 1000000000) {
+        total_uSvValue /= 1000000000;
+        total_uSvUnit = "kSv";
+    }
+
+    // Get the elements by their IDs
+    var gaugeValueElement = document.getElementById('gaugeValue');
+    var additionalInfoElement = document.getElementById('additionalInfo');
+
+    // Update the content dynamically
+    gaugeValueElement.innerHTML = "<span>" + uSvValue.toFixed(2) + " " + uSvUnit + "</span>";
+    additionalInfoElement.innerHTML = "<span style='font-weight: bold;'>CPM: " + CPMValue.toFixed() + "</span><br><span style='font-style: italic;'>- " + total_uSvValue.toFixed(2) + " " + total_uSvUnit + " -</span>";
+
+
+    // Update gauge data
+    gaugeData.push(greenValue, yellowValue, redValue, greyValue);
+    gaugeChart.data.datasets[0].data = gaugeData;
+    gaugeChart.update();
+    }
+
+    // Function to update the radiation graph
+    function updateRadiationGraph(newData) {
+    // Filter out any data points that already exist in radiationGraphData
+    newData = newData.filter(entry => !radiationGraphData.find(existingEntry => existingEntry.time === entry.time));
+
+    // Append new data to existing data
+    radiationGraphData.push(...newData);
+
+    // Limit the radiationGraphData array to the last 1000 elements to keep it consistent with the chart
+    radiationGraphData = radiationGraphData.slice(-1000);
+
+    // Update radiation graph data and labels
+    radiationGraphChart.data.labels = radiationGraphData.map(entry => entry.time);
+    radiationGraphChart.data.datasets[0].data = radiationGraphData.map(entry => entry.uSv);
+    radiationGraphChart.data.datasets[1].data = radiationGraphData.map(entry => entry.danger_threshold);
+    // Update the chart
+    radiationGraphChart.update();
+    }
+
+    ///////////////////////////////////////////////
+    //                 Fetch Data                //
+    ///////////////////////////////////////////////
+
+
+    // Initially fetch initial data and update charts
+    // fetchInitialDataAndUpdate();
+
+    function applyColorScheme() {
+    // Toggle dark mode state
+    var isDarkMode = getDarkModeState();
+    
+    if (isDarkMode) {
+        // Apply dark mode styles
+        if (radiationGraphChart && radiationGraphChart.options) {
+            radiationGraphChart.options.scales.y.ticks.color = 'rgba(255, 255, 255, 0.7)'
+            radiationGraphChart.options.scales.y.grid.color = 'rgba(255,255,255,0.1)'
+            radiationGraphChart.options.plugins.legend.labels.color = 'rgba(255, 255, 255, 0.7)';
+        }
+        if (gaugeChart && gaugeChart.data && gaugeChart.data.datasets && gaugeChart.data.datasets.length > 0){
+            gaugeChart.data.datasets[0].borderColor = '#222'
+        }
+    } else {
+        // Apply light mode styles
+        if (radiationGraphChart && radiationGraphChart.options) {
+            radiationGraphChart.options.scales.y.ticks.color = '#666'
+            radiationGraphChart.options.scales.y.grid.color = 'rgba(0,0,0,0.1)'
+            radiationGraphChart.options.plugins.legend.labels.color = '#000';
+        if (gaugeChart && gaugeChart.data && gaugeChart.data.datasets && gaugeChart.data.datasets.length > 0){
+            gaugeChart.data.datasets[0].borderColor = 'rgba(255, 255, 255, 0.7)';
+        }
+        }
+    }
+
+    // Update the chart
+    radiationGraphChart.update();
+    gaugeChart.update();
+    };
+    
+    // Call applyDarkMode function on startup
+    applyDarkMode();
+
+    const url = new URL("/ws", location.href);
+    url.protocol = 'ws';
+    // Create a WebSocket instance
+    const socket = new WebSocket(url);
+
+    // Event handler for when the connection is established
+    socket.onopen = function(event) {
+        console.log('Connected to server');
+    };
+
+    // Event handler for receiving messages from the server
+    socket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        // Update gauge and radiation graph with fetched data
+        updateGauge(data.uSv, data.CPM, data.total_uSv, data.danger_threshold);
+        updateRadiationGraph([{ time: data.time, uSv: data.uSv ,danger_threshold: data.danger_threshold}]);
+        
+        updateIndicator(data.mqtt_status);
+    };
+
+    
+
+    function updateIndicator(mqtt_status) {
+    const indicator = document.getElementById('mqttStatusIndicator');
+
+    switch (mqtt_status) {
+        case -4:
+            indicator.textContent = 'Status: Connection Timeout';
+            indicator.style.color = 'red';
+            break;
+        case -3:
+            indicator.textContent = 'Status: Connection Lost';
+            indicator.style.color = 'orange';
+            break;
+        case -2:
+            indicator.textContent = 'Status: Connection Failed';
+            indicator.style.color = 'yellow';
+            break;
+        case -1:
+            indicator.textContent = 'Status: Disconnected';
+            indicator.style.color = 'grey';
+            break;
+        case 0:
+            indicator.textContent = 'Status: Connected';
+            indicator.style.color = 'green';
+            break;
+        case 1:
+            indicator.textContent = 'Status: Bad Protocol';
+            indicator.style.color = 'blue';
+            break;
+        case 2:
+            indicator.textContent = 'Status: Bad Client ID';
+            indicator.style.color = 'purple';
+            break;
+        case 3:
+            indicator.textContent = 'Status: Unavailable';
+            indicator.style.color = 'cyan';
+            break;
+        case 4:
+            indicator.textContent = 'Status: Bad Credentials';
+            indicator.style.color = 'hotpink';
+            break;
+        case 5:
+            indicator.textContent = 'Status: Unauthorized';
+            indicator.style.color = 'orangeRed';
+            break;
+        default:
+            // Handle any other cases or errors
+            console.error('Invalid status:', mqtt_status);
+    }  
+}
+
+    // Event handler for handling errors
+    socket.onerror = function(error) {
+        console.error('WebSocket error:', error);
+    };
+
+    // Event handler for when the connection is closed
+    socket.onclose = function(event) {
+        console.log('Disconnected from server');
+    };
+
+    // Function to handle errors
+    socket.onerror = function(event) {
+        console.error('WebSocket error:', event);
+    };
+
+
+    ///////////////////////////////////////////////
+    //              Chart Dark Mode              //
+    ///////////////////////////////////////////////
+
+    // #endregion
+
+    /////////////////////////////////////////////////// Save/Load MQTT/WIFI Settings //////////////////////////////////////////////////////
+    // #region MQTT/WIFI Settings
+    // Function to save MQTT settings
+    async function saveMQTTSettings(event) {
+        event.preventDefault();
+        var form = document.getElementById("mqttForm");
+        var formData = new FormData(form);
+        var mqttSettings = {};
+        formData.forEach(function(value, key){
+            mqttSettings[key] = value;
+        });
+
+        try {
+            const response = await fetch('/settings/mqtt', {
+                method: 'POST',
+                body: JSON.stringify(mqttSettings),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                showToast("Your MQTT settings have been saved successfully.", 'success');
+            } else {
+                throw new Error(data.message || 'Failed to save MQTT settings');
+            }
+        } catch (error) {
+            console.error('Error saving MQTT settings:', error.message);
+            showToast("Failed to save MQTT settings", 'error');
+        }
+    }
+
+    // Function to load MQTT settings
+    async function loadMQTTSettings() {        
+        try {
+            const response = await fetch('/settings/mqtt', {
+                method: 'GET'
+            });
+        
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById("broker").value = data.broker;
+                document.getElementById("port").value = data.port;
+                document.getElementById("username").value = data.username;
+                //document.getElementById("mqttPassword").value = data.password;
+                document.getElementById("mqttPassword").placeholder = data.password; // replace if you don't care about security
+                document.getElementById("clientId").value = data.clientId;
+                document.getElementById("doseTopic").value = data.doseTopic;
+                document.getElementById("totalDoseTopic").value = data.totalDoseTopic;
+            } else {
+                throw new Error(data.message || 'Failed to load MQTT settings');
+            }
+        
+        } catch (error) {
+            console.error('Error loading MQTT settings:', error);
+            showToast("Failed to load MQTT settings", 'error');
+        }
+    }
+
+    // Call the loadMQTTSettings() function on startup
+    loadMQTTSettings()
+
+    // Function to save WiFi settings
+    async function saveWiFiSettings(event) {
+        event.preventDefault();
+        var form = document.getElementById("wifiForm");
+        var formData = new FormData(form);
+        var wifiSettings = {};
+        formData.forEach(function(value, key){
+            wifiSettings[key] = value;
+        });
+
+        try {
+            const response = await fetch('/settings/wifi', {
+                method: 'POST',
+                body: JSON.stringify(wifiSettings),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                showToast("Your WiFi settings have been saved successfully.", 'success');
+            } else {
+                throw new Error(data.message || 'Failed to save WiFi settings');
+            }
+        } catch (error) {
+            console.error('Error saving WiFi settings:', error.message);
+            showToast("Failed to save WiFi settings", 'error');
+        }
+    }
+
+    // Function to load WiFi settings
+    async function loadWiFiSettings() {        
+        try {
+            const response = await fetch('/settings/wifi', {
+                method: 'GET'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById("ssid").value = data.ssid;
+                //document.getElementById("wifiPassword").value = data.password;
+                document.getElementById("wifiPassword").placeholder = data.password; // replace if you don't care about security
+            } else {
+                throw new Error(data.message || 'Failed to load WiFi settings');
+            }
+            
+        } catch (error) {
+            console.error('Error loading WiFi settings:', error);
+            showToast("Failed to load WiFi settings", 'error');
+        }
+    }
+
+    // Call the loadWiFiSettings() function on startup
+    loadWiFiSettings()
+
+    // #endregion
+
+    ////////////////////////////////////////////////////////// Toast Message //////////////////////////////////////////////////////////////
+    // #region Toast Message
+    
+    // Queue for toast messages
+    var toastQueue = [];
+
+    // Function to show toast message
+    function showToast(message, type) {
+        var toastContainer = document.getElementById("toast-container");
+        var toastElement = document.createElement("div");
+        toastElement.className = "toast show";
+        toastElement.innerText = message;
+        if (type === 'success') {
+            toastElement.style.backgroundColor = '#4CAF50';
+        } else if (type === 'error') {
+            toastElement.style.backgroundColor = '#F44336';
+        }
+        toastContainer.appendChild(toastElement);
+        toastQueue.push(toastElement);
+        // Remove the oldest toast after 3 seconds
+        setTimeout(function(){
+            var removedToast = toastQueue.shift();
+            if (removedToast) {
+                removedToast.classList.remove("show");
+                setTimeout(function(){
+                    toastContainer.removeChild(removedToast);
+                }, 500);
+            }
+        }, 3000);
+    }
+    // #endregion
+    
+    ////////////////////////////////////////////////////////// Suggestion Box /////////////////////////////////////////////////////////////
+    // #region Suggestion Box
+
+    // Function to set the width of the suggestions box
+    function setSuggestionsWidth() {
+        const ssidInput = document.getElementById('ssid');
+        const ssidSuggestions = document.getElementById('ssidSuggestions');
+        const inputWidth = ssidInput.offsetWidth;
+        ssidSuggestions.style.width = inputWidth + 'px';
+    }
+    // Call the function to set the initial width
+    setSuggestionsWidth();
+    // Event listener for input field to update suggestions box width
+    document.getElementById('ssid').addEventListener('input', setSuggestionsWidth);
+    // Event listener for window resize to update suggestions box width
+    window.addEventListener('resize', setSuggestionsWidth);
+    // Event listener for input field to update suggestions box width
+    document.getElementById('ssid').addEventListener('input', setSuggestionsWidth);
+
+    // Define ssids variable at a broader scope
+    let ssids = [];
+
+    // Function to fetch SSIDs from the server
+    async function fetchSSIDs() {
+        try {
+            const response = await fetch('/list-available-networks');
+            if (!response.ok) {
+                throw new Error('Unable to fetch SSIDs');
+            }
+            const data = await response.json();
+            return data.networks;
+        } catch (error) {
+            console.error('Error fetching SSIDs:', error.message);
+            return [];
+        }
+    }
+
+
+    // Function to populate SSID suggestions
+    async function populateSSIDSuggestions() {
+        const ssidInput = document.getElementById('ssid');
+        const inputValue = ssidInput.value.toLowerCase();
+        const filteredSSIDs = ssids.filter(available_networks => available_networks.ssid.toLowerCase().startsWith(inputValue));
+        const ssidSuggestions = document.getElementById('ssidSuggestions');
+
+        // Set the width of the suggestion box to match the width of the input field
+        ssidSuggestions.style.width = ssidInput.offsetWidth + 'px';
+
+        ssidSuggestions.innerHTML = '';
+        filteredSSIDs.forEach(network => {
+            const suggestion = document.createElement('div');
+            suggestion.classList.add('suggestion-item');
+            suggestion.textContent = network.ssid;
+            suggestion.addEventListener('click', function() {
+                ssidInput.value = network.ssid;
+                ssidSuggestions.innerHTML = '';
+                document.getElementById("wifiPassword").focus();
+            });
+            ssidSuggestions.appendChild(suggestion);
+        });
+        if (filteredSSIDs.length > 0) {
+            ssidSuggestions.style.display = 'block';
+        } else {
+            ssidSuggestions.style.display = 'none';
+        }
+    }
+
+    // Add event listener to input field to show suggestions when clicked
+    document.getElementById('ssid').addEventListener('click', function() {
+        populateSSIDSuggestions();
+    });
+
+    // Add event listener to document to hide suggestions when clicking elsewhere
+    document.addEventListener('click', function(event) {
+        const ssidInput = document.getElementById('ssid');
+        const ssidSuggestions = document.getElementById('ssidSuggestions');
+        if (event.target !== ssidInput && !ssidSuggestions.contains(event.target)) {
+            ssidSuggestions.style.display = 'none';
+        }
+    });
+
+
+    // Add event listener to input field to show suggestions on clicked/input/focus
+    document.getElementById('ssid').addEventListener('click', populateSSIDSuggestions);
+    document.getElementById('ssid').addEventListener('input', populateSSIDSuggestions);
+    document.getElementById('ssid').addEventListener('focus', populateSSIDSuggestions());
+
+    // Event listener for document click to hide SSID suggestions
+    document.addEventListener('click', function(event) {
+        const ssidInput = document.getElementById('ssid');
+        const ssidSuggestions = document.getElementById('ssidSuggestions');
+        const clickedElement = event.target;
+
+        // Check if the clicked element is not the input field or its suggestions
+        if (clickedElement !== ssidInput && !ssidSuggestions.contains(clickedElement)) {
+            ssidSuggestions.innerHTML = '';
+        }     
+    });
+
+    // Function to refresh SSIDs
+        async function refreshSSIDs() {
+            event.preventDefault(); // Prevent form submission
+        var refreshIcon = document.getElementById('refreshIcon');
+        refreshIcon.classList.add('fa-spin');
+
+        // Perform the SSID
+        try {
+            ssids = await fetchSSIDs();
+            populateSSIDSuggestions();
+        } catch (error) {
+            console.error('Error refreshing SSIDs:', error.message);
+        }
+
+        // Remove the rotation after a certain time (e.g., 2 seconds)
+        setTimeout(function() {
+            refreshIcon.classList.remove('fa-spin');
+        }, 1000);
+
+    }
+
+    // On page load, fetch SSIDs and populate the suggestions
+    window.onload = async function() {
+        ssids = await fetchSSIDs();
+    };
+
+    // #endregion
+
+    /////////////////////////////////////////////////////// Passowrd Visibility ///////////////////////////////////////////////////////////
+    // #region Passowrd Visibility
+
+    // Function to toggle password visibility for WiFi password
+    function toggleWIFIPasswordVisibility() {
+        event.preventDefault(); // Prevent form submission
+        var passwordInput = document.getElementById('wifiPassword');
+        var visibilityIcon = document.getElementById('wifi-password-visibility-icon');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            visibilityIcon.src = 'eye_open.svg';
+        } else {
+            passwordInput.type = 'password';
+            visibilityIcon.src = 'eye_closed.svg';
+        }
+    }
+
+    // Function to toggle password visibility for MQTT password
+    function toggleMQTTPasswordVisibility() {
+        var passwordInput = document.getElementById('mqttPassword');
+        var visibilityIcon = document.getElementById('mqtt-password-visibility-icon');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            visibilityIcon.src = 'eye_open.svg';
+        } else {
+            passwordInput.type = 'password';
+            visibilityIcon.src = 'eye_closed.svg';
+        }
+    }
+
+    // #endregion
+
+    /////////////////////////////////////////////////// Move To Next Element in Form //////////////////////////////////////////////////////
+    // #region Move To Next Element in Form
+
+    // WIFI
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("wifiForm");
+        form.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                const inputs = form.querySelectorAll("input, select, textarea");
+                const currentInput = document.activeElement;
+                const currentIndex = Array.from(inputs).indexOf(currentInput);
+                if (currentIndex === inputs.length - 2) {
+                    saveWiFiSettings(event); 
+                    event.preventDefault(); 
+                } else {
+                    const nextIndex = currentIndex + 1;
+                    if (nextIndex < inputs.length - 1) {
+                        inputs[nextIndex].focus(); 
+                        event.preventDefault();
+                        ssidSuggestions.innerHTML = '';
+                    }
+                }
+            }
+        });
+    });
+
+    // MQTT
+    document.addEventListener("DOMContentLoaded", function() {
+        const form = document.getElementById("mqttForm");
+        form.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                const inputs = form.querySelectorAll("input, select, textarea");
+                const currentInput = document.activeElement;
+                const currentIndex = Array.from(inputs).indexOf(currentInput);
+                if (currentInput.id !== "saveMQTTButton") {
+                    const nextIndex = currentIndex + 1;
+                    if (currentIndex < inputs.length - 1) {
+                        inputs[nextIndex].focus();
+                        event.preventDefault();
+                    }
+                }
+            }
+        });
+    });
+
+    // #endregion
+
+    ////////////////////////////////////////////////////////// Device Settings ////////////////////////////////////////////////////////////
+    //#region Settings
+    // Function to fetch settings from the server
+    async function fetchSettings() {
+        try {
+            const response = await fetch('/settings');
+            if (!response.ok) {
+                throw new Error('Unable to fetch settings');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching settings:', error.message);
+            return {};
+        }
+    }
+
+    // Function to save settings to the server
+    async function saveSettings(settings) {
+        try {
+            const response = await fetch('/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(settings),
+            });
+            if (!response.ok) {
+                throw new Error('Unable to save settings');
+            }
+            console.log('Settings saved successfully.');
+        } catch (error) {
+            console.error('Error saving settings:', error.message);
+        }
+    }
+
+    // Function to load and apply settings on page load
+    async function loadSettings() {
+        try {
+            const settings = await fetchSettings();
+            // Apply settings to the UI elements
+            document.getElementById('clicker').checked = settings.generalSettings.clicker;
+            document.getElementById('alarm').checked = settings.generalSettings.alarm;
+            document.getElementById('dangerRate').value = settings.generalSettings.alarmThr;
+            document.getElementById('brightness').value = settings.displaySettings.brightness;
+            document.getElementById('windowSize').value = settings.measurementSettings.windowSize;
+            document.getElementById('samplingPeriod').value = settings.measurementSettings.samplingPeriod;
+        } catch (error) {
+            console.error('Error loading settings:', error.message);
+        }
+    }
+
+    // Call loadSettings function on page load
+    window.onload = loadSettings;
+
+    // Event listeners to save settings whenever a value changes
+    document.querySelectorAll('input[type="checkbox"], input[type="number"]').forEach(input => {
+        input.addEventListener('change', async function() {
+            const settings = {
+                "generalSettings": {
+                    "clicker": document.getElementById('clicker').checked,
+                    "alarm": document.getElementById('alarm').checked,
+                    "alarmThr": parseFloat(document.getElementById('dangerRate').value),
+                },
+                "displaySettings": {
+                    "brightness": parseInt(document.getElementById('brightness').value),
+                },
+                "measurementSettings": {
+                    "windowSize": parseInt(document.getElementById('windowSize').value),
+                    "samplingPeriod": parseFloat(document.getElementById('samplingPeriod').value),
+                }
+            };
+            await saveSettings(settings);
+        });
+    });
+
+    // Event listener for brightness input field specifically
+    document.getElementById('brightness').addEventListener('input', async function() {
+        const settings = {
+                "generalSettings": {
+                    "clicker": document.getElementById('clicker').checked,
+                    "alarm": document.getElementById('alarm').checked,
+                    "alarmThr": parseFloat(document.getElementById('dangerRate').value),
+                },
+                "displaySettings": {
+                    "brightness": parseInt(document.getElementById('brightness').value),
+                },
+                "measurementSettings": {
+                    "windowSize": parseInt(document.getElementById('windowSize').value),
+                    "samplingPeriod": parseFloat(document.getElementById('samplingPeriod').value),
+                }
+            };
+        await saveSettings(settings);
+    });
+  
+    //#endregion
+  
+
+    //#region WIFI/MQTT Status
+    //#endregion
+</script>
+
+</body>
+</html>
