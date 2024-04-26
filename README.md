@@ -6,15 +6,15 @@
 Introducing OpenRad, a simple radiation monitoring solution powered by the SBM-20 GM tube and TTGO ESP32 microcontroller. this project offers a user-friendly approach to way to track radiation levels.
 
 # Table of Contents
-<!-- - [Demo](#demo) -->
+- [Demo](#demo)
 - [Install](#install)
 - [Folder Structure](#folder-structure)
 - [FAQS](#faqs)
 - [License](#license)
 
-<!-- # Demo
-![Demo video]()
-![Images]() and more here ... -->
+# Demo
+<!-- ![Demo video]() -->
+![Images](demo_gif.gif)
 
 # Install
 1. Install [VSCode](https://code.visualstudio.com/).
