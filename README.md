@@ -53,6 +53,9 @@ git clone https://github.com/omarkhorshid/OpenRad.git
 - `index.html` : Contains the web interface.
 - `chart.js` : Chart.js Library file.
 
+# Schematics
+[View project schematics](./Hardware/Schematics.pdf)
+
 # FAQs
 ### How do I Navigate the UI in OpenRad?
 Using the three buttons, up down and enter. ...
