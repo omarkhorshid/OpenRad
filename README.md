@@ -66,6 +66,9 @@ After uploading the code to the ESP, open the settings cogwheel, and change the 
 ### What types of connectivity does OpenRad have?
 OpenRad has WiFi and MQTT connectivity to be able to remotely monitor the radiation levels from the Web interface.
 
+###How do I connect to OpenRad?
+To connect to OpenRad and access the web interface
+
 
 # License
 OpenRad is [BSD-3 Licensed](license.txt '3-Clause BSD License')
