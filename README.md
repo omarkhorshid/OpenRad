@@ -55,6 +55,7 @@ git clone https://github.com/omarkhorshid/OpenRad.git
 - `chart.js` : Chart.js Library file.
 
 # Schematics
+![Schematics](./Hardware/Schematics.png)
 [View project schematics](./Hardware/Schematics.pdf)
 
 # FAQs
