@@ -15,6 +15,7 @@ Introducing OpenRad, a simple radiation monitoring solution powered by the SBM-2
 # Demo
 ![Images](demo_gif.gif)
 ### Youtube Demo
+[![Demo Video](https://img.youtube.com/vi/kaBPnBUhCXA/0.jpg)](https://www.youtube.com/watch?v=kaBPnBUhCXA)
 [![Demo Video](https://img.youtube.com/vi/ACgCJScDpeg/0.jpg)](https://www.youtube.com/watch?v=ACgCJScDpeg)
 
 # Install
