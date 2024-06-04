@@ -5,6 +5,8 @@
 # OpenRad
 Introducing OpenRad, a simple radiation monitoring solution powered by the SBM-20 GM tube and TTGO ESP32 microcontroller. this project offers a user-friendly approach to tracking and measuring radiation levels.
 
+<a href="https://www.pcbway.com/project/shareproject/OpenRad_A_Geiger_Counter_using_SBM_20_and_ESP32_7f1d54d7.html"><img src="Get on PCBWay.png" alt="PCB from PCBWay" /></a>
+
 # Table of Contents
 - [Demo](#demo)
 - [Install](#install)
