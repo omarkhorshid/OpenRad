@@ -1,0 +1,6 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "OperRadv2")(type "KiCad")(uri "$(KIPRJMOD)/OpenRAD.pretty")(options "")(descr ""))
+  (lib (name "extras")(type "KiCad")(uri "${KIPRJMOD}/extras.pretty")(options "")(descr ""))
+  (lib (name "Super_extra")(type "KiCad")(uri "${KIPRJMOD}/Super_extra.pretty")(options "")(descr ""))
+)
