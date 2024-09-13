@@ -679,7 +679,7 @@
                 <div class="form-group">
                     <label for="ssid">WiFi SSID:</label>
                     <div class="input-with-button">
-                        <input type="text" id="ssid" name="ssid" autocomplete="off" maxlength="32" pattern="[a-zA-Z0-9]+" title="Please enter only alphanumeric characters" required>
+                        <input type="text" id="ssid" name="ssid" autocomplete="off" maxlength="32" pattern="[a-zA-Z0-9_\-]+" title="Please enter only letters, numbers, underscores, or hyphens" required>
                         <button id="refreshSSIDsButton" onclick="refreshSSIDs()">
                             <img id="refreshIcon" src="refresh.svg" alt="Refresh">
                         </button>                    
