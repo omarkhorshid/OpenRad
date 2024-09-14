@@ -11,7 +11,7 @@
 #include "time.h"
 #include "hardware.h"
 
-unsigned long mqtt_publish_interval = 500; //MQTT Publish Interval
+int mqtt_publish_interval = 500; //MQTT Publish Interval
 
 AsyncWebServer server(80);
 
