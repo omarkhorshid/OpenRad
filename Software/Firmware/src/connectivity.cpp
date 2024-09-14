@@ -11,6 +11,8 @@
 #include "time.h"
 #include "hardware.h"
 
+unsigned long mqtt_publish_interval = 500; //MQTT Publish Interval
+
 AsyncWebServer server(80);
 
 AsyncWebSocket ws("/ws");
@@ -162,7 +164,7 @@ void mqtt_loop()
 {
     if (get_wifi_enabled() && get_mqtt_enabled())
     {
-        if ((millis() - mqtt_connection_check_millis) > 500)
+        if ((millis() - mqtt_connection_check_millis) > mqtt_publish_interval)
         {
             if (!client.connected())
             {
