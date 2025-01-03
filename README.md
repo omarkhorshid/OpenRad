@@ -86,5 +86,14 @@ If not connected to a Wifi network:
 If Connected:
 - From a device on the same network navigate to the IP address showing on the device screen in the Connectivity settings
 
+### What are the Measurement Settings?
+1. **Window Size:** Number of samples used to calculate the average radiation intensity.
+
+- **Bigger** values help the device give a more stable reading and theoretically increse its precision, but it will react slowler to changes.
+- **Smaller** values help the device react faster to changes, but the readings might fluctuate more and theoretically decrease the precision.
+
+2. **Sampling Period**: This is how often the device takes a reading (e.g., every N milliseconds).
+- **Bigger** values make the device take readings less frequently, reducing energy consumption during sleep, but the device will react slower to changes.
+- **Smaller** values make the device take readings more often, making it quicker to detect changes, but the readings may be less precise and the device consumes more power during sleep (If sleep sampling is enabled).
 # License
 OpenRad is [BSD-3 Licensed](license.txt '3-Clause BSD License')
