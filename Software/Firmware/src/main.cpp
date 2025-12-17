@@ -38,6 +38,8 @@ void loop()
   if ((millis() - gui_timer_handler) > 5)
   {
     lv_timer_handler();
+    if (!get_bat_charge_lvl())
+      enter_deep_sleep();
     gui_timer_handler = millis();
   }
 }
